@@ -4,24 +4,40 @@ from pathlib import Path
 import json
 import os
 
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
 app = Flask(__name__)
 
 
 def load_mongo_uri():
-    env_file = Path(__file__).with_name("atlas-credentials.env")
-    if env_file.exists():
-        for line in env_file.read_text(encoding="utf-8").splitlines():
+    project_dir = Path(__file__).resolve().parent
+
+    if load_dotenv is not None:
+        load_dotenv(project_dir / ".env")
+
+    mongo_uri = os.environ.get("MONGODB_URI")
+    if mongo_uri:
+        return mongo_uri
+
+    legacy_env = project_dir / "atlas-credentials.env"
+    if legacy_env.exists():
+        for line in legacy_env.read_text(encoding="utf-8").splitlines():
             stripped = line.strip()
             if not stripped or stripped.startswith("#") or "=" not in stripped:
                 continue
             key, value = stripped.split("=", 1)
             os.environ[key.strip()] = value.strip().strip('"')
-    return os.environ.get("MONGODB_URI")
+        return os.environ.get("MONGODB_URI")
+
+    return None
 
 
 mongo_uri = load_mongo_uri()
 if not mongo_uri:
-    raise RuntimeError("MONGODB_URI not found. Add it to atlas-credentials.env or set the environment variable.")
+    raise RuntimeError("MONGODB_URI not found. Add it to a local .env file or set the environment variable.")
 
 client = MongoClient(mongo_uri)
 db = client["student_db"]
