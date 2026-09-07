@@ -1,0 +1,13 @@
+{
+  "name": "todo-frontend",
+  "version": "1.0.0",
+  "description": "Express frontend that submits To-Do items to a Flask backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "axios": "^1.7.2"
+  }
+}
